@@ -9,6 +9,14 @@ interface Marker {
   y: number;
 }
 
+interface Projectile {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speed: number;
+}
+
 const playerWidth = 50;
 const playerHeight = 50;
 const groundLevel = canvas.height - 70;
@@ -21,6 +29,11 @@ const markerSpacing = 200;
 let backgroundSpeed = 2;
 let playerSpeed = 5;
 let backgroundDirection = 0; // -1 for moving left, 1 for moving right
+
+let projectiles: Projectile[] = [];
+const projectileWidth = 5;
+const projectileHeight = 5;
+const projectileSpeed = 10;
 
 function generateMarkers() {
   markers.length = 0;
@@ -44,6 +57,16 @@ function updateBackground() {
   }
 }
 
+function fireProjectile() {
+  projectiles.push({
+    x: canvas.width / 2,
+    y: groundLevel - playerHeight / 2,
+    width: projectileWidth,
+    height: projectileHeight,
+    speed: projectileSpeed
+  });
+}
+
 document.addEventListener('keydown', (event) => {
   switch (event.key) {
     case 'ArrowRight':
@@ -51,6 +74,9 @@ document.addEventListener('keydown', (event) => {
       break;
     case 'ArrowLeft':
       backgroundDirection = -1;
+      break;
+    case 's':
+      fireProjectile();
       break;
   }
 });
@@ -61,8 +87,19 @@ document.addEventListener('keyup', (event) => {
   }
 });
 
+function updateProjectiles() {
+  for (const projectile of projectiles) {
+    projectile.x += projectile.speed;
+    // Remove projectiles that have moved off-screen
+    if (projectile.x > canvas.width) {
+      projectiles = projectiles.filter(p => p !== projectile);
+    }
+  }
+}
+
 function update() {
   updateBackground();
+  updateProjectiles();
 }
 
 function render() {
@@ -81,6 +118,12 @@ function render() {
   // Draw the player
   ctx.fillStyle = 'blue';
   ctx.fillRect(canvas.width / 2 - playerWidth / 2, groundLevel - playerHeight, playerWidth, playerHeight);
+
+  // Draw projectiles
+  ctx.fillStyle = 'yellow';
+  for (const projectile of projectiles) {
+    ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+  }
 }
 
 function gameLoop() {
